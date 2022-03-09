@@ -1,31 +1,34 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import EmojiList from './components/EmojiList.js'
 
 function App() {
-    const [value, setValue] = useState('');
-    const [list, setList] = React.useState([]);
-    const [isLoading, setLoading] = React.useState(false);
+    let value = ''
+    const [input, setInput] = useState('');
+    const [list, setList] = useState([]);
+    const [isLoading, setLoading] = useState(false);
 
-    const getApi = async () => {
+    const getApi = async (name) => {
         setLoading(true);
         try {
-            await fetch(`https://api.jikan.moe/v3/search/anime?q=${value}`)
+            await fetch(`https://api.jikan.moe/v3/search/anime?q=${name}`)
             // await fetch(`https://api.emojisworld.fr/v1/search?q=${value}`)
                 .then(response => response.json())
                 .then(data => setList(data.results));
-
         } catch (e) {
             console.log(e)
         }
         setLoading(false);
+        value = input;
     };
 
-    const onChange = useCallback((e) => {setValue(e.target.value)}, [value])
+    const onChange = ((e) => {setInput(e.target.value)})
 
-    const onSearch = () => {
-            let data = getApi();
-            setList(data.results)
-        };
+    const onSearch = useCallback( () => {
+        if (value !== input) {
+            const data = getApi(input);
+            setList(data.results);
+        }
+    }, [input]);
 
     return (
     <div className="App">
@@ -35,7 +38,7 @@ function App() {
         />
         <button onClick={onSearch}>Search</button>
         {isLoading ? (<p>Идет загрузка...</p>) :
-            <EmojiList list={list}/>
+            list !== undefined ? <EmojiList list={list}/> : <p>Не найдено</p>
         }
     </div>
   );
